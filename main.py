@@ -8,12 +8,14 @@ import json
 # In order to use this, you need to make a Infura Developer account, and run `export WEB3_INFURA_PROJECT_ID=your_id_here
 
 
-def get_block_data(block_identifier, log=False, outer_list=[]):
+def get_block_data(block_identifier, log=False):
     current_block = w3.eth.getBlock(block_identifier=block_identifier)
     print()
     print("*" * 150)
     print()
     print(f"Block Number: {current_block['number']}")
+
+    blocks = []
     for transaction in current_block.transactions:
         current_transaction_data = w3.eth.getTransaction(transaction)
         if not current_transaction_data.to:
@@ -25,7 +27,9 @@ def get_block_data(block_identifier, log=False, outer_list=[]):
             if log:
                 transaction_data = {"transaction_hash": transaction_hash, "bytecode": code,
                                     "contract_address": contract_address, "block_number": current_block['number']}
-                outer_list.append(transaction_data)
+            blocks.append(transaction_data)
+
+    return blocks
 
 
 def scan_blockchain_for_contracts(args):
@@ -54,9 +58,9 @@ def scan_blockchain_for_contracts(args):
         if end_block < start_block:
             print("Invalid option, End Block is greater than Start Block.")
             return
+            
+        [get_block_data(block_num, log=args['output']) for block_num in range(start_block, end_block)]
 
-        for block_num in range(start_block, end_block):
-            get_block_data(block_num, log=args['output'], outer_list=outer_list)
 
         if args['output']:
             with open(filename, "w") as output_file:
